@@ -37,7 +37,6 @@ export default React.createClass({
   componentDidMount() {
     request
       .get(this.props.url)
-      .withCredentials()
       .end((res) => {
         if (res.clientError) 
           console.error(res.text)
