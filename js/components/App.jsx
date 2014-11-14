@@ -35,12 +35,15 @@ export default React.createClass({
   },
   
   componentDidMount() {
-    request.get(this.props.url, (res) => {
-      if (res.clientError) 
-        console.error(res.text)
-      else
-        DashboardDataStore.setAll(res.body)
-    })
+    request
+      .get(this.props.url)
+      .withCredentials()
+      .end((res) => {
+        if (res.clientError) 
+          console.error(res.text)
+        else
+          DashboardDataStore.setAll(res.body)
+      })
 
     DashboardDataStore.on('change', this._onChange)
   },
