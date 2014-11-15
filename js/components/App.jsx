@@ -44,10 +44,10 @@ export default React.createClass({
 
     var menuItems = [
       { route: 'overview', text: 'Overview'},
-      { route: 'accounts', text: 'Accounts'},
-      { route: 'issues', text: 'Issues'},
-      { route: 'ideas', text: 'Ideas'},
-      { route: 'groups', text: 'Groups'}
+      { route: 'accounts', text: 'Accounts', number: this.state.data.user.total },
+      { route: 'issues', text: 'Issues', number: this.state.data.issue.total },
+      { route: 'ideas', text: 'Ideas', number: this.state.data.idea.total },
+      { route: 'groups', text: 'Groups', number: this.state.data.group.total }
     ]
 
     return (
