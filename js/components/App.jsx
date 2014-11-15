@@ -1,33 +1,12 @@
 import React from 'react'
-import Router from 'react-router'
-import EventEmitter from 'events'
-import assign from 'object-assign'
 import request from 'superagent'
+import mui from 'material-ui'
 
-import Overview from './overview'
-import Accounts from './accounts'
-import Projects from './projects'
-import Groups from './groups'
+import DashboardDataStore from '../stores/DashboardDataStore'
 
-var {Link} = Router
+import PageWithNav from './page-with-nav'
 
-var DashboardDataStore = assign({}, EventEmitter.prototype, {
-  _data: {
-    user: {recent: []},
-    issue: {recent: []},
-    idea: {recent: []},
-    group: {recent: []}
-  },
-
-  setAll(data) {
-    this._data = data
-    this.emit('change')
-  },
-
-  getAll() {
-    return this._data
-  }
-});
+var {Menu, PaperButton} = mui
 
 export default React.createClass({
   getInitialState() {
@@ -40,6 +19,7 @@ export default React.createClass({
   componentDidMount() {
     request
       .get(this.props.url)
+      .withCredentials()
       .end((res) => {
         if (res.error)
           this.setState({
@@ -59,20 +39,24 @@ export default React.createClass({
   render() {
     var error = ''
     if (this.state.error) error = (
-      <div class="error">{this.state.error}</div>
+      <div className="error">{this.state.error}</div>
     )
+
+    var menuItems = [
+      { route: 'overview', text: 'Overview'},
+      { route: 'accounts', text: 'Accounts'},
+      { route: 'issues', text: 'Issues'},
+      { route: 'ideas', text: 'Ideas'},
+      { route: 'groups', text: 'Groups'}
+    ]
 
     return (
       <div>
-        <ul>
-          <li><Link to="overview">Overview</Link></li>
-          <li><Link to="accounts">Accounts</Link></li>
-          <li><Link to="issues">Issues</Link></li>
-          <li><Link to="ideas">Ideas</Link></li>
-          <li><Link to="groups">Groups</Link></li>
-        </ul>
+        <PageWithNav 
+          menuItems={menuItems}
+          activeRouteHandler={this.props.activeRouteHandler}
+          data={this.state.data} />
         {error}
-        <this.props.activeRouteHandler data={this.state.data}/>
       </div>
     );
   },

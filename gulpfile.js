@@ -4,7 +4,7 @@ var gulp = require('gulp')
   , buffer = require('vinyl-buffer')
   , watchify = require('watchify')
   , browserify = require('browserify')
-  , sass = require('gulp-sass')
+  , less = require('gulp-less')
   , minifyCSS = require('gulp-minify-css')
   , notify = require('gulp-notify')
   , sourcemaps = require('gulp-sourcemaps')
@@ -15,7 +15,7 @@ var gulp = require('gulp')
   , livereload = require('gulp-livereload')
 ;
 
-var STYLES = []
+var STYLES = ['css/app.less']
   , JSENTRY = "./js/app.jsx"
 ;
 
@@ -27,7 +27,7 @@ gulp.task('watch', function() {
   });
 
   // CSS
-  gulp.watch(STYLES, ['sass']);
+  gulp.watch(STYLES, ['less']);
 
   // JS with Browserify
   watchify.args.debug = true;
@@ -59,14 +59,15 @@ gulp.task('connect', function() {
 });
 
 
-gulp.task('sass', function() {
-  gulp.src("./client/thinkerous.scss")
+gulp.task('less', function() {
+  gulp.src(STYLES)
+    .on('error', notify.onError("<%= error.message %>"))
     .pipe(sourcemaps.init())
-      .pipe(sass())
+      .pipe(less())
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('build'))
-    .pipe(livereload())
-    .pipe(notify("Finished building scss"));
+    .pipe(connect.reload())
+    .pipe(notify("Finished building less"));
 });
 
 

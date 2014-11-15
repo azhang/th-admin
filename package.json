@@ -1,9 +1,11 @@
 {
-  "name": "Thinkerous Admin",
+  "name": "th-admin",
   "description": "Collaborative Ideation Platform Dashboard",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "gulp-less": "^1.3.6",
+    "material-ui": "git://github.com/callemall/material-ui",
     "moment": "^2.8.3",
     "react-router": "^0.10.2",
     "superagent": "^0.21.0"
