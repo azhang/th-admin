@@ -12,7 +12,7 @@ import App from './components/App'
 
 React.render(
   <Routes>
-    <Route path="/" handler={App} url="http://localhost:3000/dashboard_api">
+    <Route path="/" handler={App} url="https://www.thinkero.us/dashboard_api">
       <DefaultRoute name="overview" handler={Overview} />
       <Route name="accounts" handler={Accounts} />
       <Route name="issues" handler={Projects} projectType="Issues" />
