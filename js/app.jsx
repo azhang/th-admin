@@ -1,14 +1,13 @@
 import React from 'react'
 import Router from 'react-router'
 
+import App from './components/App'
 import Overview from './pages/overview'
 import Accounts from './pages/accounts'
 import Projects from './pages/projects'
 import Groups from './pages/groups'
 
-var {Route, Routes, Link, DefaultRoute} = Router;
-
-import App from './components/App'
+var {Route, Routes, DefaultRoute} = Router;
 
 React.render(
   <Routes>

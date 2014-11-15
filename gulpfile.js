@@ -27,7 +27,7 @@ gulp.task('watch', function() {
   });
 
   // CSS
-  gulp.watch(STYLES, ['less']);
+  gulp.watch(['css/**/*.less'], ['less']);
 
   // JS with Browserify
   watchify.args.debug = true;

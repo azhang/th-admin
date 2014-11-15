@@ -5,8 +5,9 @@ import mui from 'material-ui'
 import DashboardDataStore from '../stores/DashboardDataStore'
 
 import PageWithNav from './page-with-nav'
+import '../google-analytics'
 
-var {Menu, PaperButton} = mui
+var {AppCanvas, AppBar, Menu, Paper, PaperButton} = mui
 
 export default React.createClass({
   getInitialState() {
@@ -51,13 +52,27 @@ export default React.createClass({
     ]
 
     return (
-      <div>
+      <AppCanvas predefinedLayout={1}>
+        <AppBar 
+          title="Thinkerous • Dashboard" 
+          zDepth={1}>
+          <span style={{float:"right", lineHeight:"64px", color:"white"}}>
+            <Paper zDepth={0} style={{float:"right"}}>
+              Active Users: ###
+            </Paper>
+          </span>
+          <span style={{float:"right", lineHeight:"64px", color:"white"}}>
+            <Paper zDepth={1} style={{float:"right"}}>
+              Sign in to GA
+            </Paper>
+          </span>
+        </AppBar>
         <PageWithNav 
           menuItems={menuItems}
           activeRouteHandler={this.props.activeRouteHandler}
           data={this.state.data} />
         {error}
-      </div>
+      </AppCanvas>
     );
   },
 
