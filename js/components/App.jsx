@@ -31,15 +31,20 @@ var DashboardDataStore = assign({}, EventEmitter.prototype, {
 
 export default React.createClass({
   getInitialState() {
-    return DashboardDataStore.getAll()
+    return {
+      data: DashboardDataStore.getAll(),
+      error: ""
+    };
   },
   
   componentDidMount() {
     request
       .get(this.props.url)
       .end((res) => {
-        if (res.clientError) 
-          console.error(res.text)
+        if (res.error)
+          this.setState({
+            error: `${res.status} ${res.text}`
+          })
         else
           DashboardDataStore.setAll(res.body)
       })
@@ -52,6 +57,11 @@ export default React.createClass({
   },
 
   render() {
+    var error = ''
+    if (this.state.error) error = (
+      <div class="error">{this.state.error}</div>
+    )
+
     return (
       <div>
         <ul>
@@ -61,7 +71,8 @@ export default React.createClass({
           <li><Link to="ideas">Ideas</Link></li>
           <li><Link to="groups">Groups</Link></li>
         </ul>
-        <this.props.activeRouteHandler data={this.state}/>
+        {error}
+        <this.props.activeRouteHandler data={this.state.data}/>
       </div>
     );
   },
@@ -70,6 +81,9 @@ export default React.createClass({
     * Event handler for 'change' events coming from the TodoStore
     */
   _onChange() {
-    this.setState(DashboardDataStore.getAll())
+    this.setState({
+      data: DashboardDataStore.getAll(),
+      error: ""
+    })
   }
 });
