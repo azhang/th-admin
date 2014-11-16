@@ -1,4 +1,5 @@
 import load from 'load-script'
+import Promise from 'bluebird'
 import GADataStore from '../stores/GADataStore'
 
 load('https://apis.google.com/js/client.js?onload=onGapiLoad')
@@ -25,132 +26,156 @@ export function handleAuthClick(event) {
 
 function _handleAuthResult(authResult) {
   if (authResult && !authResult.error) {
-    gapi.client.load('analytics', 'v3')
     GADataStore.set('auth', true);
-  } else {
-    GADataStore.emit('error', authResult.error || "GA auth error")
+    gapi.client.load('analytics', 'v3', gapiProfileInit)
   }
 }
 
-
-
-//----------
-
-
-export function handleAPIClick() {
-  queryAccounts();
-}
-
-function queryAccounts() {
-  console.log('Querying Accounts.');
-
-  // Get a list of all Google Analytics accounts for this user
-  gapi.client.analytics.management.accounts
-    .list()
-    .execute(handleAccounts);
-}
 
 /**
- * Retrieve all GA accounts associated with this user
- * @param  {Object} results JSON response from query
+ * Retrieve all data necessary for actual core api usage
+ * @return {Object} Promise
  */
-function handleAccounts(results) {
-  if (results.code)
-    GADataStore.emit('error', 'There was an error querying accounts: ' + results.message)
-  else if (!results || !results.items || !results.items.length)
-    GADataStore.emit('error', 'No accounts found for this user.')
-  else {
-    GADataStore.set('accounts', results.items)
-
-    var i = GADataStore.get('selectedAccountIndex');
-    if (results.items.length)
-      queryWebproperties(results.items[i].id);
-  }
-}
-
-
-function queryWebproperties(accountId) {
-  console.log("Querying Web Properties");
-
-  // Get a list of all the Web Properties for the account
-  gapi.client.analytics.management.webproperties
-    .list({'accountId': accountId})
-    .execute(handleWebproperties);
-}
-
-function handleWebproperties(results) {
-  if (results.code)
-    GADataStore.emit('error', 'There was an error querying webproperties: ' + results.message)
-  else if (!results || !results.items || !results.items.length)
-    GADataStore.emit('error', 'No webproperties found for this user.')
-  else {
-    GADataStore.set('webproperties', results.items)
-
-    var i = GADataStore.get('selectedWebPropertyIndex');
-    if (results.items.length)
-      queryProfiles(results.items[i].accountId, results.items[i].id);
-  }
-}
-
-
-function queryProfiles(accountId, webpropertyId) {
-  console.log('Querying Views (Profiles).');
-
-  // Get a list of all Views (Profiles) for the first Web Property of the first Account
-  gapi.client.analytics.management.profiles
-  .list({
-    'accountId': accountId,
-    'webPropertyId': webpropertyId
-  }).execute(handleProfiles);
-}
-
-function handleProfiles(results) {
-  if (results.code)
-    GADataStore.emit('error', 'There was an error querying profiles: ' + results.message)
-  else if (!results || !results.items || !results.items.length)
-    GADataStore.emit('error', 'No profiles found for this user.')
-  else {
-    GADataStore.set('profiles', results.items)
-
-    var i = GADataStore.get('selectedProfileIndex');
-    if (results.items.length)
-      queryCoreReportingApi(results.items[i].id);
-  }
-}
-
-
-function queryCoreReportingApi(profileId) {
-  console.log('Querying Core Reporting API.');
-
-  // Use the Analytics Service Object to query the Core Reporting API
-  /*gapi.client.analytics.data.ga.get({
-    'ids': 'ga:' + profileId,
-    'start-date': '2014-10-01',
-    'end-date': '2014-11-15',
-    'metrics': 'ga:sessions'
-  }).execute(handleCoreReportingResults);*/
-  gapi.client.analytics.data.realtime.get({
-    ids: 'ga:' + profileId,
-    metrics:'rt:activeUsers'
-  }).execute(function(response) {
-    var newValue = response.totalResults ? +response.rows[0][0] : 0;
-    console.log(newValue);
+function gapiProfileInit() {
+  return queryAccounts()
+  .then(queryWebproperties)
+  .then(queryProfiles)
+  .then(function() {
+    setInterval(rtActiveUsers, 5000)
+  })
+  .error(function(error) {
+    GADataStore.emit('error', error)
   })
 }
 
-function handleCoreReportingResults(results) {
-  if (results.error) {
-    console.log('There was an error querying core reporting API: ' + results.message);
-  } else {
-    printResults(results);
-  }
+
+
+function queryAccounts() {
+  return new Promise(function(resolve, reject) {
+    gapi.client.analytics.management.accounts
+      .list()
+      .execute(function(results) {
+        if (results.code)
+          reject('There was an error querying accounts: ' + results.message)
+        else if (!results || !results.items || !results.items.length)
+          reject('error', 'No accounts found for this user.')
+        else {
+          GADataStore.set('accounts', results.items)
+
+          var i = GADataStore.get('selectedAccountIndex');
+          resolve({accountId: results.items[i].id})
+        }
+      })
+  })
 }
 
-function printResults(results) {
-  if (results.rows && results.rows.length) {
-    console.log('View (Profile) Name: ', results.profileInfo.profileName);
-    console.log('Total Sessions: ', results.rows[0][0]);
-  } else {
-    console.log('No results found');
-  }
+function queryWebproperties() {
+  var i = GADataStore.get('selectedAccountIndex');
+  var accountId = GADataStore.get('accounts')[i].id;
+
+  return new Promise(function(resolve, reject) {
+    gapi.client.analytics.management.webproperties
+      .list({'accountId': accountId})
+      .execute(function(results) {
+        if (results.code)
+          reject('There was an error querying webproperties: ' + results.message)
+        else if (!results || !results.items || !results.items.length)
+          reject('error', 'No webproperties found for this user.')
+        else {
+          GADataStore.set('webproperties', results.items)
+
+          var i = GADataStore.get('selectedWebPropertyIndex');
+          resolve({
+            accountId: results.items[i].accountId, 
+            webpropertyId: results.items[i].id
+          });
+        }
+      })
+  })
+}
+
+
+function queryProfiles() {
+  var ai = GADataStore.get('selectedAccountIndex');
+  var accountId = GADataStore.get('webproperties')[ai].accountId;
+
+  var wpi = GADataStore.get('selectedWebPropertyIndex');
+  var webpropertyId = GADataStore.get('webproperties')[wpi].id;
+
+  return new Promise(function(resolve, reject) {
+    gapi.client.analytics.management.profiles
+      .list({
+        'accountId': accountId,
+        'webPropertyId': webpropertyId
+      })
+      .execute(function(results) {
+        if (results.code)
+          reject('There was an error querying profiles: ' + results.message)
+        else if (!results || !results.items || !results.items.length)
+          reject('error', 'No profiles found for this user.')
+        else {
+          GADataStore.set('profiles', results.items)
+
+          var i = GADataStore.get('selectedProfileIndex');
+          resolve(results.items[i].id);
+        }
+      })
+  })
+}
+
+
+function rtActiveUsers() {
+  var i = GADataStore.get('selectedProfileIndex');
+  var profileId = GADataStore.get('profiles')[i].id;
+
+  return new Promise(function(resolve, reject) {
+    gapi.client.analytics.data.realtime.get({
+      ids: 'ga:' + profileId,
+      metrics:'rt:activeUsers'
+    })
+    .execute(function(results) {
+      if (results.error)
+        reject('There was an error querying core realtime API: ' + results.message)
+      else {
+        var newValue = results.totalResults ? +results.rows[0][0] : 0;
+        var oldValue = GADataStore.get('activeUsers')
+
+        GADataStore.set('activeUsers', newValue)
+
+        if (newValue != oldValue) {
+          GADataStore.emit((0 < newValue - oldValue) ? 'activeUsers:increase': 'activeUsers:decrease');
+        }
+
+        resolve(newValue);
+      }
+    })
+  })
+}
+
+function gaSessions() {
+  var i = GADataStore.get('selectedProfileIndex');
+  var profileId = GADataStore.get('profiles')[i].id;
+
+  return new Promise(function(resolve, reject) {
+    gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': '2014-10-01',
+      'end-date': '2014-11-15',
+      'metrics': 'ga:sessions'
+    })
+    .execute(function(results) {
+      if (results.error)
+        reject('There was an error querying core reporting API: ' + results.message)
+      else {
+        if (results.rows && results.rows.length) {
+          console.log('View (Profile) Name: ', results.profileInfo.profileName);
+          console.log('Total Sessions: ', results.rows[0][0]);
+        } else {
+          console.log('No results found');
+        }
+        
+        resolve(newValue);
+      }
+    })
+  })
 }

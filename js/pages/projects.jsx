@@ -17,7 +17,7 @@ export default React.createClass({
             return (
               <li key={project._id}>
                 {moment(created).fromNow()}&nbsp;
-                <a href={"/"+project._group+"/projects/"+project._id}>
+                <a href={"https://www.thinkero.us/"+project._group+"/projects/"+project._id}>
                   <b>{project.title}
                   </b>
                 </a>

@@ -5,7 +5,7 @@ import DashboardDataStore from '../stores/DashboardDataStore'
 import GADataStore from '../stores/GADataStore'
 
 import PageWithNav from './page-with-nav'
-import {handleAuthClick, handleAPIClick} from '../google-analytics'
+import {handleAuthClick} from '../google-analytics'
 
 var {AppCanvas, AppBar, Menu, Paper, PaperButton} = mui
 
@@ -30,7 +30,9 @@ export default React.createClass({
 
   componentWillUnmount() {
     DashboardDataStore.removeListener('change', this._onChange)
+    DashboardDataStore.removeListener('error', this._onChange)
     GADataStore.removeListener('change', this._onChange)
+    GADataStore.removeListener('error', this._onChange)
   },
 
   render() {
@@ -55,12 +57,8 @@ export default React.createClass({
       ga = (
         <span style={{float:"right", lineHeight:"64px", color:"white"}}>
           <Paper zDepth={0}>
-            Active Users: ###
+            Active Users: {this.state.ga_data.activeUsers}
           </Paper>
-          <PaperButton 
-            type="RAISED" 
-            label="Get Sessions" 
-            onClick={handleAPIClick} />
         </span>
       )
 

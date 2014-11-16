@@ -9,7 +9,8 @@ var _data = {
   webproperties: [],
   selectedWebPropertyIndex: 0,
   profiles: [],
-  selectedProfileIndex: 0
+  selectedProfileIndex: 0,
+  activeUsers: 0
 }
 
 export default assign({}, EventEmitter.prototype, {

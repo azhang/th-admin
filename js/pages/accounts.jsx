@@ -16,7 +16,7 @@ export default React.createClass({
               <li key={account._id}>
                 {moment(created).fromNow()}&nbsp;
                 {/* TODO: don't use `app` */}
-                <a href={"/"+"app"+"/user/"+account._id}>
+                <a href={"https://www.thinkero.us/"+"app"+"/user/"+account._id}>
                   <b>{account.displayName}</b>
                 </a> 
               </li>

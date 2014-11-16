@@ -16,7 +16,7 @@ export default React.createClass({
             return (
               <li key={group._id}>
                 {moment(created).fromNow()}&nbsp;
-                <a href={"/"+group.subdomain}>
+                <a href={"https://www.thinkero.us/"+group.subdomain}>
                   <b>{group.name}
                   </b>
                 </a>
