@@ -1,6 +1,6 @@
-import React from 'react'
 import EventEmitter from 'events'
 import assign from 'object-assign'
+import request from 'superagent'
 
 var _data = {
   user: {recent: []},
@@ -18,5 +18,18 @@ export default assign({}, EventEmitter.prototype, {
 
   getAll() {
     return _data
+  },
+
+  load(url) {
+    request
+      .get(url)
+      .withCredentials()
+      .end((res) => {
+        if (res.error)
+          this.emit('error', `${res.status} ${res.text}`);
+        else
+          this.setAll(res.body)
+      })
   }
+
 });

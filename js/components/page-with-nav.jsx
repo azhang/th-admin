@@ -13,10 +13,14 @@ export default React.createClass({
   },
 
   render: function() {
+    var page = <this.props.activeRouteHandler data={this.props.data} />
+    if (this.props.error) 
+      page = <div className="error">{this.props.error}</div>
+
     return (
       <div className="mui-app-content-canvas page-with-nav">
         <div className="page-with-nav-content">
-          <this.props.activeRouteHandler data={this.props.data} />
+          {page}
         </div>
         <div className="page-with-nav-secondary-nav">
           <Menu 
